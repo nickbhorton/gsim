@@ -29,7 +29,7 @@ if(PACKAGE_TESTS)
 endif()
 
 set(
-    SOURCES
+    MAIN_EXECUTABLE
     src/main.cpp
     ext/glad/src/glad.c
 )
@@ -43,4 +43,5 @@ set(
 )
 include_directories(${INCLUDE_DIRS})
 
-add_executable(main src/main.cpp)
+add_executable(main ${MAIN_EXECUTABLE})
+target_link_libraries(main glfw ${OPENGL_LIBRARIES})
