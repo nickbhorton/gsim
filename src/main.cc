@@ -5,16 +5,23 @@
 
 #include "Shader.h"
 
+static unsigned int indexes[] = {
+	0, 1, 2,
+	1, 3, 2
+};
+
 static float basic_triangle_vertex_positions[] = {
-    -0.5, -0.5,
-	 0.5, -0.5,
-	 0.0,  0.5
+    -1, -1,
+	 1, -1,
+	-1,  1,
+	 1,  1
 };
 
 static float basic_triangle_vertex_colors[] = {
     1.0, 0.0, 0.0,
 	0.0, 1.0, 0.0,
-	0.0, 0.0, 1.0
+	0.0, 0.0, 1.0,
+	1.0, 0.0, 0.0,
 };
 
 // VBOs
@@ -23,6 +30,9 @@ GLuint vertex_color_vbo {};
 
 // VAOs
 GLuint triangle_vao {};
+
+// IBO
+GLuint triangle_ibo {};
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if( action == GLFW_PRESS){
@@ -58,6 +68,12 @@ void init_gl_buffers(){
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_color_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(basic_triangle_vertex_colors), basic_triangle_vertex_colors, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// Generate IBO
+	glGenBuffers(1, &triangle_ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, triangle_ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexes), indexes, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	// Generate VAO
 	glGenVertexArrays(1, &triangle_vao);
@@ -124,6 +140,7 @@ int main(int argc, char *argv[]){
 
     // OpenGL initializations
 	glEnable(GL_DEPTH_TEST);  // turn hidden surface removal on
+	glEnable(GL_CULL_FACE); // Requires triangles to be defined ccw
 	glClearColor(1.f,1.f,1.f,1.f);  // set the background
 
 	// Shader initialization
@@ -133,12 +150,13 @@ int main(int argc, char *argv[]){
 
 	init_gl_buffers();
 	glBindVertexArray(triangle_vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, triangle_ibo);
 
     while(!glfwWindowShouldClose(window)){
         // Clear the color and depth buffers
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, sizeof(indexes), GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
 		glfwPollEvents();
