@@ -31,18 +31,25 @@ endif()
 set(
     MAIN_EXECUTABLE
     src/main.cc
+    src/Shader.cc
     ext/glad/src/glad.c
 )
+
+
+set (
+    HEADERS
+    include/Shader.h
+) 
 
 # Include Directories
 set(
     INCLUDE_DIRS
-    include
+    include/
     ext/glfw/include
     ext/glad/include
     ext/linearmath/include/
 )
 include_directories(${INCLUDE_DIRS})
 
-add_executable(main ${MAIN_EXECUTABLE})
+add_executable(main ${MAIN_EXECUTABLE} ${HEADERS})
 target_link_libraries(main glfw ${OPENGL_LIBRARIES})

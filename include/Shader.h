@@ -1,14 +1,26 @@
 #ifndef GSIM_SHADER_HEADER_
 #define GSIM_SHADER_HEADER_
 
+#include <string>
+#include <iostream>
+#include <fstream>
+
 #include "glad/glad.h"
 
 class Shader {
-    ~Shader();
-    Shader()
-        : program_id{0}
+public:
+    Shader() : 
+        program_id_{0},
+        vertex_id_{0},
+        fragment_id_{0}
     {};
+    ~Shader(){
+        glDeleteProgram(program_id_);
+    };
+    void enable();
+    void disable();
 
+    void from_files(std::string vertex_file_path, std::string fragment_file_path);
 
     // No copy or move assignment or constructor
     Shader(const Shader& other) = delete;
@@ -17,9 +29,12 @@ class Shader {
     Shader& operator=(Shader&& other) noexcept = delete;
 
 private:
-    GLuint program_id;
-	GLuint vertex_id;
-	GLuint fragment_id;
+    GLuint program_id_;
+	GLuint vertex_id_;
+	GLuint fragment_id_;
+
+    void init(std::string vertex_source, std::string fragment_source);
+    int compile_source(const char* source, GLenum shader_type);
 };
 
 #endif
