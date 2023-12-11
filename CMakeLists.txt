@@ -30,13 +30,14 @@ endif()
 
 set(
     MAIN_EXECUTABLE
-    src/main.cpp
+    src/main.cc
     ext/glad/src/glad.c
 )
 
 # Include Directories
 set(
     INCLUDE_DIRS
+    include
     ext/glfw/include
     ext/glad/include
     ext/linearmath/include/

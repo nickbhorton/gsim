@@ -11,9 +11,23 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         }
 	}
 }
+static void error_callback(int error, const char* description){
+    std::cerr << "Error: " << description << "\n";
+}
+
+static void frame_buffer_size_callback(GLFWwindow* window, int width, int height){
+    std::cout << "width: " << width << " height: " << height << "\n"; 
+}
+
+static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos) {
+
+}
 
 int main(int argc, char *argv[]){
     GLFWwindow* window;
+
+	glfwSetErrorCallback(&error_callback);
+
     if(!glfwInit()){ 
 		return EXIT_FAILURE; 
 	}
@@ -33,11 +47,12 @@ int main(int argc, char *argv[]){
 
     // Callbacks
     glfwSetKeyCallback(window, &key_callback);
+    glfwSetFramebufferSizeCallback(window, &frame_buffer_size_callback);
 
 	glfwMakeContextCurrent(window); // Make the window current
     glfwSwapInterval(1); // Set the swap interval
 
-    // make sure the openGL code can be found; folks using Windows need this
+    // make sure the openGL code can be found
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Failed to gladLoadGLLoader" << std::endl;
 		glfwTerminate();
