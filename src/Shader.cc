@@ -40,6 +40,19 @@ void Shader::from_files(std::string vertex_file_path, std::string fragment_file_
 	init(vertex_source, fragment_source);
 }
 
+GLuint Shader::uniform(const std::string name)
+{
+    // Create GLuint map from string if it doesn't already exist
+    if(uniform_map.count(name) == 0){ 
+		uniform_map[name] = glGetUniformLocation(program_id_, name.c_str());
+		if(uniform_map[name] < 0){ 
+            std::cout << "getting uniform location returned a negative number\n";
+            exit(EXIT_FAILURE); 
+        }
+	}
+	return uniform_map[name];
+}
+
 void Shader::init(std::string vertex_source, std::string fragment_source)
 {
     program_id_ = glCreateProgram();

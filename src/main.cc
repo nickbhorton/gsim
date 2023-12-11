@@ -1,23 +1,30 @@
 #include <iostream>
+#include <chrono>
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
 #include "Shader.h"
 
-static unsigned int indexes[] = {
+constexpr int START_WINDOW_WIDTH = 500;
+constexpr int START_WINDOW_HEIGHT = 500;
+constexpr float BACKGROUND_COLOR_RED = 1.;
+constexpr float BACKGROUND_COLOR_GREEN = 1.;
+constexpr float BACKGROUND_COLOR_BLUE = 1.;
+
+constexpr unsigned int indexes[] = {
 	0, 1, 2,
 	1, 3, 2
 };
 
-static float basic_triangle_vertex_positions[] = {
-    -1, -1,
-	 1, -1,
-	-1,  1,
-	 1,  1
+constexpr float basic_triangle_vertex_positions[] = {
+    -0.5, -0.5,
+	 0.5, -0.5,
+	-0.5,  0.5,
+	 0.5,  0.5
 };
 
-static float basic_triangle_vertex_colors[] = {
+constexpr float basic_triangle_vertex_colors[] = {
     1.0, 0.0, 0.0,
 	0.0, 1.0, 0.0,
 	0.0, 0.0, 1.0,
@@ -25,14 +32,16 @@ static float basic_triangle_vertex_colors[] = {
 };
 
 // VBOs
-GLuint vertex_position_vbo {};
-GLuint vertex_color_vbo {};
+static GLuint vertex_position_vbo {};
+static GLuint vertex_color_vbo {};
 
 // VAOs
-GLuint triangle_vao {};
+static GLuint triangle_vao {};
 
 // IBO
-GLuint triangle_ibo {};
+static GLuint triangle_ibo {};
+
+static Shader default_shader{};
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if( action == GLFW_PRESS){
@@ -49,10 +58,11 @@ static void error_callback(int error, const char* description){
 static void frame_buffer_size_callback(GLFWwindow* window, int width, int height){
     std::cout << "width: " << width << " height: " << height << "\n"; 
 	glViewport(0,0,width,height);
+	glUniform2f(default_shader.uniform("u_resolution"), width, height);
 }
 
 static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos) {
-
+	glUniform2f(default_shader.uniform("u_mouse"), xpos, ypos) ;
 }
 
 void init_gl_buffers(){
@@ -118,7 +128,7 @@ int main(int argc, char *argv[]){
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
 	// Create the glfw window
-	window = glfwCreateWindow(500, 500, "gsim", NULL, NULL);
+	window = glfwCreateWindow(START_WINDOW_WIDTH, START_WINDOW_HEIGHT, "gsim", NULL, NULL);
 	if(!window){ 
 		glfwTerminate(); 
 		return EXIT_FAILURE; 
@@ -127,6 +137,7 @@ int main(int argc, char *argv[]){
     // Callbacks
     glfwSetKeyCallback(window, &key_callback);
     glfwSetFramebufferSizeCallback(window, &frame_buffer_size_callback);
+	glfwSetCursorPosCallback(window, &cursor_pos_callback);
 
 	glfwMakeContextCurrent(window); // Make the window current
     glfwSwapInterval(1); // Set the swap interval
@@ -141,10 +152,9 @@ int main(int argc, char *argv[]){
     // OpenGL initializations
 	glEnable(GL_DEPTH_TEST);  // turn hidden surface removal on
 	glEnable(GL_CULL_FACE); // Requires triangles to be defined ccw
-	glClearColor(1.f,1.f,1.f,1.f);  // set the background
+	glClearColor(BACKGROUND_COLOR_RED, BACKGROUND_COLOR_GREEN, BACKGROUND_COLOR_BLUE, 1.f);  // set the background
 
 	// Shader initialization
-	Shader default_shader {};
 	default_shader.from_files("../res/basic.vert", "../res/basic.frag");
 	default_shader.enable();
 
@@ -152,11 +162,23 @@ int main(int argc, char *argv[]){
 	glBindVertexArray(triangle_vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, triangle_ibo);
 
+	// Set up time typedefs
+	typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::milliseconds ms;
+    typedef std::chrono::duration<float> fsec;
+    auto start = Time::now();
+
+	glUniform2f(default_shader.uniform("u_resolution"), START_WINDOW_WIDTH, START_WINDOW_HEIGHT);
+
     while(!glfwWindowShouldClose(window)){
         // Clear the color and depth buffers
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glDrawElements(GL_TRIANGLES, sizeof(indexes), GL_UNSIGNED_INT, 0);
+
+		// updating time unform every game loop
+		auto now = Time::now();
+		glUniform1f(default_shader.uniform("u_time"), (start - now).count() / 1.0e9);
 
         glfwSwapBuffers(window);
 		glfwPollEvents();
